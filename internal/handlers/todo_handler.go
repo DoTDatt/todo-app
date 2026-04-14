@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/DoDtatt/todo-app/internal/models"
@@ -14,6 +15,22 @@ type TodoHandler struct {
 
 func NewTodoHandler(repo *repositories.TodoRepository) *TodoHandler {
 	return &TodoHandler{repo: repo}
+}
+
+func (h *TodoHandler) GetTodoByID(c *gin.Context) {
+	idParam := c.Param("id")
+	var id uint
+	_, err := fmt.Sscanf(idParam, "%d", &id)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ID không hợp lệ"})
+		return
+	}
+	todo, err := h.repo.GetbyID(id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Lỗi lấy dữ liệu"})
+		return
+	}
+	c.JSON(http.StatusOK, todo)
 }
 
 func (h *TodoHandler) GetAllTodos(c *gin.Context) {

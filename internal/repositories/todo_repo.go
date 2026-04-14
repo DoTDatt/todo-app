@@ -22,3 +22,9 @@ func (r *TodoRepository) GetAll() ([]models.Todo, error) {
 	err := r.db.Find(&todos).Error
 	return todos, err
 }
+
+func (r *TodoRepository) GetbyID(id uint) (*models.Todo, error) {
+	var todo models.Todo
+	err := r.db.First(&todo, id).Error
+	return &todo, err
+}
