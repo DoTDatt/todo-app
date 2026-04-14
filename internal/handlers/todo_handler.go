@@ -57,3 +57,25 @@ func (h *TodoHandler) CreateTodo(c *gin.Context) {
 
 	c.JSON(http.StatusCreated, todo)
 }
+
+func (h *TodoHandler) UpdateTodo(c *gin.Context) {
+	idParam := c.Param("id")
+	var id uint
+	_, err := fmt.Sscanf(idParam, "%d", &id)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ID không hợp lệ"})
+		return
+	}
+	var todo models.Todo
+	if err := c.ShouldBindJSON(&todo); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	todo.ID = id
+	if err := h.repo.Update(&todo); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Lỗi cập nhật"})
+		return
+	}
+
+	c.JSON(http.StatusOK, todo)
+}

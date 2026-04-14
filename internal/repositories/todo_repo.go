@@ -28,3 +28,7 @@ func (r *TodoRepository) GetbyID(id uint) (*models.Todo, error) {
 	err := r.db.First(&todo, id).Error
 	return &todo, err
 }
+
+func (r *TodoRepository) Update(todo *models.Todo) error {
+	return r.db.Updates(todo).Error
+}
