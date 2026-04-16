@@ -79,3 +79,19 @@ func (h *TodoHandler) UpdateTodo(c *gin.Context) {
 
 	c.JSON(http.StatusOK, todo)
 }
+
+func (h *TodoHandler) DeleteTodo(c *gin.Context) {
+	idParam := c.Param("id")
+	var id uint
+	_, err := fmt.Sscanf(idParam, "%d", &id)
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ID không hợp lệ"})
+		return
+	}
+	if err := h.repo.Delete(id); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Lỗi xóa dữ liệu"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Todo đã được xóa"})
+}

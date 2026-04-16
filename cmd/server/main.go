@@ -22,5 +22,6 @@ func main() {
 	r.GET("/todos", todoHandler.GetAllTodos)
 	r.GET("/todos/:id", todoHandler.GetTodoByID)
 	r.PUT("/todos/:id", todoHandler.UpdateTodo)
+	r.DELETE("/todos/:id", todoHandler.DeleteTodo)
 	r.Run(":8080")
 }
