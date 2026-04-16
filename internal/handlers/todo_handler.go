@@ -5,41 +5,16 @@ import (
 	"net/http"
 
 	"github.com/DoDtatt/todo-app/internal/models"
-	"github.com/DoDtatt/todo-app/internal/repositories"
+	"github.com/DoDtatt/todo-app/internal/services"
 	"github.com/gin-gonic/gin"
 )
 
 type TodoHandler struct {
-	repo *repositories.TodoRepository
+	serv *services.TodoService
 }
 
-func NewTodoHandler(repo *repositories.TodoRepository) *TodoHandler {
-	return &TodoHandler{repo: repo}
-}
-
-func (h *TodoHandler) GetTodoByID(c *gin.Context) {
-	idParam := c.Param("id")
-	var id uint
-	_, err := fmt.Sscanf(idParam, "%d", &id)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "ID không hợp lệ"})
-		return
-	}
-	todo, err := h.repo.GetbyID(id)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Lỗi lấy dữ liệu"})
-		return
-	}
-	c.JSON(http.StatusOK, todo)
-}
-
-func (h *TodoHandler) GetAllTodos(c *gin.Context) {
-	todos, err := h.repo.GetAll()
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Lỗi lấy dữ liệu"})
-		return
-	}
-	c.JSON(http.StatusOK, todos)
+func NewTodoHandler(serv *services.TodoService) *TodoHandler {
+	return &TodoHandler{serv: serv}
 }
 
 func (h *TodoHandler) CreateTodo(c *gin.Context) {
@@ -50,12 +25,37 @@ func (h *TodoHandler) CreateTodo(c *gin.Context) {
 		return
 	}
 
-	if err := h.repo.Create(&todo); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Lỗi lưu dữ liệu"})
+	if err := h.serv.CreateTodo(&todo); err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
 	}
 
 	c.JSON(http.StatusCreated, todo)
+}
+
+func (h *TodoHandler) GetTodoByID(c *gin.Context) {
+	idParam := c.Param("id")
+	var id uint
+	_, err := fmt.Sscanf(idParam, "%d", &id)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ID không hợp lệ"})
+		return
+	}
+	todo, err := h.serv.GetbyID(id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, todo)
+}
+
+func (h *TodoHandler) GetAllTodos(c *gin.Context) {
+	todos, err := h.serv.GetAll()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, todos)
 }
 
 func (h *TodoHandler) UpdateTodo(c *gin.Context) {
@@ -63,7 +63,7 @@ func (h *TodoHandler) UpdateTodo(c *gin.Context) {
 	var id uint
 	_, err := fmt.Sscanf(idParam, "%d", &id)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "ID không hợp lệ"})
+		c.JSON(http.StatusNotFound, gin.H{"error": "ID không hợp lệ"})
 		return
 	}
 	var todo models.Todo
@@ -72,8 +72,8 @@ func (h *TodoHandler) UpdateTodo(c *gin.Context) {
 		return
 	}
 	todo.ID = id
-	if err := h.repo.Update(&todo); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Lỗi cập nhật"})
+	if err := h.serv.Update(&todo); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -89,8 +89,8 @@ func (h *TodoHandler) DeleteTodo(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "ID không hợp lệ"})
 		return
 	}
-	if err := h.repo.Delete(id); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Lỗi xóa dữ liệu"})
+	if err := h.serv.Delete(id); err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "Todo đã được xóa"})

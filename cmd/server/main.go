@@ -5,6 +5,7 @@ import (
 	"github.com/DoDtatt/todo-app/internal/handlers"
 	"github.com/DoDtatt/todo-app/internal/models"
 	"github.com/DoDtatt/todo-app/internal/repositories"
+	"github.com/DoDtatt/todo-app/internal/services"
 	"github.com/gin-gonic/gin"
 )
 
@@ -16,7 +17,8 @@ func main() {
 	r := gin.Default()
 
 	todorepo := repositories.NewTodoRepository(config.DB)
-	todoHandler := handlers.NewTodoHandler(todorepo)
+	todoserv := services.NewtodoService(todorepo)
+	todoHandler := handlers.NewTodoHandler(todoserv)
 
 	r.POST("/todos", todoHandler.CreateTodo)
 	r.GET("/todos", todoHandler.GetAllTodos)
