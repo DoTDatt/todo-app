@@ -33,12 +33,6 @@ func (r *TodoRepository) Update(todo *models.Todo) error {
 	return r.db.Updates(todo).Error
 }
 
-func (r *TodoRepository) GetByID(id uint) (*models.Todo, error) {
-	var todo models.Todo
-	err := r.db.First(&todo, id).Error
-	return &todo, err
-}
-
 func (r *TodoRepository) Delete(id uint) error {
 	var todo models.Todo
 	return r.db.Delete(&todo, id).Error
