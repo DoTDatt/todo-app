@@ -19,7 +19,7 @@ func (r *TodoRepository) Create(todo *models.Todo) error {
 
 func (r *TodoRepository) GetAll() ([]models.Todo, error) {
 	var todos []models.Todo
-	err := r.db.Find(&todos).Error
+	err := r.db.Raw("SELECT * FROM todos").Scan(&todos).Error
 	return todos, err
 }
 
