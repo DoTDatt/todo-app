@@ -60,7 +60,7 @@ func (h *TodoHandler) GetAllTodos(c *gin.Context) {
 
 func (h *TodoHandler) UpdateTodo(c *gin.Context) {
 	idParam := c.Param("id")
-	var id uint
+	var id int
 	_, err := fmt.Sscanf(idParam, "%d", &id)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "ID không hợp lệ"})
