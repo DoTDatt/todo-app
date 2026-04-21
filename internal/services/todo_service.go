@@ -5,6 +5,7 @@ import (
 
 	"github.com/DoDtatt/todo-app/internal/models"
 	"github.com/DoDtatt/todo-app/internal/repositories"
+	"gorm.io/gorm"
 )
 
 type TodoService struct {
@@ -19,29 +20,43 @@ func (s *TodoService) CreateTodo(todo *models.Todo) error {
 	if todo.Title == "" {
 		return errors.New("Title không được trống")
 	}
-	validStatuses := map[string]bool{"pending": true, " inProgress ": true, " done": true}
+	validStatuses := map[string]bool{"pending": true, "in_progress": true, "done": true}
 	if !validStatuses[todo.Status] {
-		return errors.New("status không hợp lệ(chỉ chấp nhận : pending , inProgress , done)")
+		return errors.New("status không hợp lệ(chỉ chấp nhận : pending , in_progress , done)")
 	}
 
 	return s.repo.Create(todo)
 }
 
 func (s *TodoService) GetbyID(id uint) (*models.Todo, error) {
-	return s.repo.GetbyID(id)
+	todo, err := s.repo.GetbyID(id)
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, errors.New("Todo không tồn tại")
+	}
+	return todo, nil
 }
 
-func (s *TodoService) GetAll() ([]models.Todo, error) {
-	return s.repo.GetAll()
+func (s *TodoService) GetAll(userID int, status string, search string, sort string, order string) ([]models.Todo, error) {
+	if sort == "" {
+		sort = "id"
+	}
+
+	if order == "" {
+		order = "desc"
+	}
+	if order != "asc" && order != "desc" {
+		order = "desc"
+	}
+	return s.repo.GetAll(userID, status, search, sort, order)
 }
 
 func (s *TodoService) Update(todo *models.Todo) error {
 	if todo.Title == "" {
 		return errors.New("Title không được trống")
 	}
-	validStatuses := map[string]bool{"pending": true, " inProgress ": true, " done": true}
+	validStatuses := map[string]bool{"pending": true, "in_progress": true, "done": true}
 	if !validStatuses[todo.Status] {
-		return errors.New("status không hợp lệ(chỉ chấp nhận : pending , inProgress , done)")
+		return errors.New("status không hợp lệ(chỉ chấp nhận : pending , in_progress , done)")
 	}
 
 	return s.repo.Update(todo)

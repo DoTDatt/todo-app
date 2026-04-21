@@ -20,12 +20,17 @@ func AuthMiddleware() gin.HandlerFunc {
 		}
 
 		parts := strings.Split(authHeader, " ")
-		if len(parts) != 2 || parts[0] != "Bearer" {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Định dạng Token không hợp lệ"})
+		if len(parts) != 2 {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "header không hợp lệ"})
 			c.Abort()
 			return
 		}
 
+		if parts[0] != "Bearer" {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "token không hợp lệ"})
+			c.Abort()
+			return
+		}
 		tokenString := parts[1]
 
 		token, err := utils.ValidateToken(tokenString)

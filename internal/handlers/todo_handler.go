@@ -24,7 +24,9 @@ func (h *TodoHandler) CreateTodo(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	uid, _ := c.Get("user_id")
 
+	todo.UserID = uid.(int)
 	if err := h.serv.CreateTodo(&todo); err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
@@ -43,16 +45,20 @@ func (h *TodoHandler) GetTodoByID(c *gin.Context) {
 	}
 	todo, err := h.serv.GetbyID(id)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "lỗi khi lấy todo"})
 		return
 	}
 	c.JSON(http.StatusOK, todo)
 }
 
 func (h *TodoHandler) GetAllTodos(c *gin.Context) {
-	todos, err := h.serv.GetAll()
+	todos, err := h.serv.GetAll(c.GetInt("user_id"), c.Query("status"), c.Query("search"), c.Query("sort"), c.Query("order"))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "lỗi khi lấy danh sách todo"})
+		return
+	}
+	if len(todos) == 0 {
+		c.JSON(http.StatusOK, gin.H{"message": "Không có todo nào"})
 		return
 	}
 	c.JSON(http.StatusOK, todos)
