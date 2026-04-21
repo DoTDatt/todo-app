@@ -15,3 +15,10 @@ type Todo struct {
 func (Todo) TableName() string {
 	return "todos"
 }
+
+type TodoQuery struct {
+	Status string
+	Search string
+	Sort   string
+	Order  string
+}
