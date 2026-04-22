@@ -17,7 +17,7 @@ func NewAuthHandler(serv *services.AuthService) *AuthHandler {
 }
 
 func (h *AuthHandler) Register(c *gin.Context) {
-	var input models.RegisterInput
+	var input models.RegisterRequest
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -32,7 +32,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
 }
 
 func (h *AuthHandler) Login(c *gin.Context) {
-	var input models.RegisterInput
+	var input models.RegisterRequest
 
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Dữ liệu không hợp lệ"})

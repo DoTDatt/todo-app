@@ -24,8 +24,12 @@ func main() {
 	authHandler := handlers.NewAuthHandler(authService)
 
 	r := gin.Default()
+
+	r.Use(middleware.RecoverMiddleware())
+
 	r.POST("/register", authHandler.Register)
 	r.POST("/login", authHandler.Login)
+
 	protected := r.Group("/api")
 	protected.Use(middleware.AuthMiddleware())
 	{

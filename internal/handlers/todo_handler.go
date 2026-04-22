@@ -37,7 +37,7 @@ func (h *TodoHandler) CreateTodo(c *gin.Context) {
 
 func (h *TodoHandler) GetTodoByID(c *gin.Context) {
 	idParam := c.Param("id")
-	var id uint
+	var id int
 	_, err := fmt.Sscanf(idParam, "%d", &id)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "ID không hợp lệ"})
@@ -52,11 +52,17 @@ func (h *TodoHandler) GetTodoByID(c *gin.Context) {
 }
 
 func (h *TodoHandler) GetAllTodos(c *gin.Context) {
-	todos, err := h.serv.GetAll(c.GetInt("user_id"), c.Query("status"), c.Query("search"), c.Query("sort"), c.Query("order"))
+	todos, err := h.serv.GetAll(c.GetInt("user_id"), models.TodoQuery{
+		Status: c.Query("status"),
+		Search: c.Query("search"),
+		Sort:   c.Query("sort"),
+		Order:  c.Query("order"),
+	})
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "lỗi khi lấy danh sách todo"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+
 	if len(todos) == 0 {
 		c.JSON(http.StatusOK, gin.H{"message": "Không có todo nào"})
 		return
@@ -88,7 +94,7 @@ func (h *TodoHandler) UpdateTodo(c *gin.Context) {
 
 func (h *TodoHandler) DeleteTodo(c *gin.Context) {
 	idParam := c.Param("id")
-	var id uint
+	var id int
 	_, err := fmt.Sscanf(idParam, "%d", &id)
 
 	if err != nil {
