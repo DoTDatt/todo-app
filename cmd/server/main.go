@@ -28,6 +28,7 @@ func main() {
 	r.Use(middleware.RecoverMiddleware())
 	r.Use(middleware.LoggerMiddleware())
 	r.Use(middleware.CorsMiddleware())
+	r.Use(middleware.RateLimit())
 	r.POST("/register", authHandler.Register)
 	r.POST("/login", authHandler.Login)
 
