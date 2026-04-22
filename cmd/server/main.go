@@ -26,7 +26,7 @@ func main() {
 	r := gin.Default()
 
 	r.Use(middleware.RecoverMiddleware())
-
+	r.Use(middleware.LoggerMiddleware())
 	r.POST("/register", authHandler.Register)
 	r.POST("/login", authHandler.Login)
 
