@@ -9,6 +9,8 @@ require (
 	gorm.io/gorm v1.30.0
 )
 
+require github.com/gin-contrib/cors v1.7.7 // indirect
+
 require (
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/bytedance/gopkg v0.1.4 // indirect

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Test CORS</title>
+</head>
+<body>
+  <h2>Test API CORS</h2>
+
+  <button onclick="callAPI()">Call API</button>
+
+  <pre id="result"></pre>
+
+  <script>
+    function callAPI() {
+      fetch("https://1qfmfl24-8080.asse.devtunnels.ms/api/todos", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json"
+        }
+      })
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById("result").innerText =
+          JSON.stringify(data, null, 2);
+      })
+      .catch(err => {
+        document.getElementById("result").innerText =
+          "ERROR: " + err;
+      });
+    }
+  </script>
+</body>
+</html>

@@ -27,18 +27,17 @@ func main() {
 
 	r.Use(middleware.RecoverMiddleware())
 	r.Use(middleware.LoggerMiddleware())
+	r.Use(middleware.CorsMiddleware())
 	r.POST("/register", authHandler.Register)
 	r.POST("/login", authHandler.Login)
 
 	protected := r.Group("/api")
-	protected.Use(middleware.AuthMiddleware())
-	{
-		protected.POST("/todos", todoHandler.CreateTodo)
-		protected.GET("/todos", todoHandler.GetAllTodos)
-		protected.GET("/todos/:id", todoHandler.GetTodoByID)
-		protected.PUT("/todos/:id", todoHandler.UpdateTodo)
-		protected.DELETE("/todos/:id", todoHandler.DeleteTodo)
-	}
+
+	protected.GET("/todos", middleware.AuthMiddleware(), todoHandler.GetAllTodos)
+	protected.POST("/todos", middleware.AuthMiddleware(), todoHandler.CreateTodo)
+	protected.GET("/todos/:id", middleware.AuthMiddleware(), todoHandler.GetTodoByID)
+	protected.PUT("/todos/:id", middleware.AuthMiddleware(), todoHandler.UpdateTodo)
+	protected.DELETE("/todos/:id", middleware.AuthMiddleware(), todoHandler.DeleteTodo)
 
 	r.Run(":8080")
 }
