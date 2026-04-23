@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/joho/godotenv"
+	"github.com/rs/zerolog"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -29,12 +30,22 @@ func ConnectDB() {
 		os.Getenv("DB_NAME"),
 	)
 
+	env := os.Getenv("APP_ENV")
+
 	var logLevel logger.LogLevel
-	if os.Getenv("APP_ENV") == "development" {
+
+	switch env {
+	case "dev":
 		logLevel = logger.Info
-		fmt.Println("Running in development mode, setting log level to Info")
-	} else {
+		zerolog.SetGlobalLevel(zerolog.InfoLevel)
+		fmt.Println("Running in DEV mode")
+	case "prod":
 		logLevel = logger.Error
+		zerolog.SetGlobalLevel(zerolog.ErrorLevel)
+	default:
+		logLevel = logger.Warn
+		zerolog.SetGlobalLevel(zerolog.WarnLevel)
+		fmt.Println("Running in DEFAULT mode")
 	}
 
 	DB, err = gorm.Open(mysql.Open(dsn), &gorm.Config{
