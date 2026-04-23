@@ -15,8 +15,12 @@ func NewTodoRepository(db *gorm.DB) *TodoRepository {
 	return &TodoRepository{db: db}
 }
 
-func (r *TodoRepository) Create(todo *models.Todo) error {
-	return r.db.Create(todo).Error
+func (r *TodoRepository) DB() *gorm.DB {
+	return r.db
+}
+
+func (r *TodoRepository) Create(tx *gorm.DB, todo *models.Todo) error {
+	return tx.Create(todo).Error
 }
 
 func (r *TodoRepository) GetAll(userID int, scopes ...Scope) ([]models.Todo, error) {
@@ -36,8 +40,8 @@ func (r *TodoRepository) GetbyID(id int) (*models.Todo, error) {
 	return &todo, err
 }
 
-func (r *TodoRepository) Update(todo *models.Todo) error {
-	return r.db.Updates(todo).Error
+func (r *TodoRepository) Update(tx *gorm.DB, todo *models.Todo) error {
+	return tx.Updates(todo).Error
 }
 
 func (r *TodoRepository) Delete(id int) error {

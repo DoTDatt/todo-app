@@ -26,7 +26,24 @@ func (s *TodoService) CreateTodo(todo *models.Todo) error {
 		return errors.New("status không hợp lệ(chỉ chấp nhận : pending , in_progress , done)")
 	}
 
-	return s.repo.Create(todo)
+	tx := s.repo.DB().Begin()
+	if tx.Error != nil {
+		return tx.Error
+	}
+	if err := s.repo.Create(tx, todo); err != nil {
+		tx.Rollback()
+		return err
+	}
+	if err := tx.Commit().Error; err != nil {
+		return err
+	}
+	return nil
+	// return s.repo.DB().Transaction(func(tx *gorm.DB) error {
+	// 	if err := s.repo.Create(tx, todo); err != nil {
+	// 		return err
+	// 	}
+	// 	return nil
+	// })
 }
 
 func (s *TodoService) GetbyID(id int) (*models.Todo, error) {
@@ -35,6 +52,7 @@ func (s *TodoService) GetbyID(id int) (*models.Todo, error) {
 		return nil, errors.New("Todo không tồn tại")
 	}
 	return todo, nil
+
 }
 
 func (s *TodoService) GetAll(userID int, p models.TodoQuery) ([]models.Todo, error) {
@@ -78,7 +96,17 @@ func (s *TodoService) Update(todo *models.Todo) error {
 		return errors.New("status không hợp lệ(chỉ chấp nhận : pending , in_progress , done)")
 	}
 
-	return s.repo.Update(todo)
+	tx := s.repo.DB().Begin()
+	if tx.Error != nil {
+		return tx.Error
+	}
+	if err := s.repo.Create(tx, todo); err != nil {
+		return tx.Rollback().Error
+	}
+	if err := tx.Commit().Error; err != nil {
+		return err
+	}
+	return nil
 }
 
 func (s *TodoService) Delete(id int) error {
