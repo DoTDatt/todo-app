@@ -1,20 +1,24 @@
 package services
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 
 	"github.com/DoDtatt/todo-app/internal/models"
 	"github.com/DoDtatt/todo-app/internal/repositories"
+	"github.com/DoDtatt/todo-app/internal/search"
+	"github.com/meilisearch/meilisearch-go"
 	"gorm.io/gorm"
 )
 
 type TodoService struct {
-	repo *repositories.TodoRepository
+	repo  *repositories.TodoRepository
+	meili *search.Meili
 }
 
-func NewtodoService(repo *repositories.TodoRepository) *TodoService {
-	return &TodoService{repo: repo}
+func NewtodoService(repo *repositories.TodoRepository, meili *search.Meili) *TodoService {
+	return &TodoService{repo: repo, meili: meili}
 }
 
 func (s *TodoService) CreateTodo(todo *models.Todo) error {
@@ -37,13 +41,13 @@ func (s *TodoService) CreateTodo(todo *models.Todo) error {
 	if err := tx.Commit().Error; err != nil {
 		return err
 	}
+
+	if err := s.meili.UpsertDocuments("todos", todo); err != nil {
+		fmt.Printf("[Meili] UpsertDocument failed: %v\n", err)
+	} else {
+		fmt.Printf("[Meili OK] synced todo id=%d\n", todo.ID)
+	}
 	return nil
-	// return s.repo.DB().Transaction(func(tx *gorm.DB) error {
-	// 	if err := s.repo.Create(tx, todo); err != nil {
-	// 		return err
-	// 	}
-	// 	return nil
-	// })
 }
 
 func (s *TodoService) GetbyID(id int) (*models.Todo, error) {
@@ -100,17 +104,32 @@ func (s *TodoService) Update(todo *models.Todo) error {
 	if tx.Error != nil {
 		return tx.Error
 	}
-	if err := s.repo.Create(tx, todo); err != nil {
-		return tx.Rollback().Error
+	if err := s.repo.Update(tx, todo); err != nil {
+		tx.Rollback()
+		return err
 	}
 	if err := tx.Commit().Error; err != nil {
 		return err
 	}
+	if err := s.meili.UpsertDocuments("todos", todo); err != nil {
+
+		fmt.Printf("[Meili] UpsertDocument failed: %v\n", err)
+	} else {
+		fmt.Printf("[Meili OK] synced todo id=%d\n", todo.ID)
+	}
 	return nil
+
 }
 
 func (s *TodoService) Delete(id int) error {
-	return s.repo.Delete(id)
+	err := s.repo.Delete(id)
+	if err != nil {
+		return err
+	}
+	if err := s.meili.DeleteDocument("todos", id); err != nil {
+		fmt.Printf("[Meili] DeleteDocument failed: %v\n", err)
+	}
+	return nil
 }
 
 func (s *TodoService) Status(status string) func(*gorm.DB) *gorm.DB {
@@ -143,4 +162,34 @@ func (s *TodoService) Sort(sort, order string) func(*gorm.DB) *gorm.DB {
 
 		return db.Order(fmt.Sprintf("%s %s", sort, order))
 	}
+}
+
+func (s *TodoService) SearchMeili(query string) ([]models.Todo, error) {
+	res, err := s.meili.Client.Index("todos").Search(query, &meilisearch.SearchRequest{
+		Limit: 20,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	var todos []models.Todo
+	for _, hit := range res.Hits {
+		data, _ := json.Marshal(hit)
+
+		var raw map[string]interface{}
+		json.Unmarshal(data, &raw)
+
+		if t, ok := raw["created_at"]; ok {
+			raw["created_at"] = fmt.Sprintf("%v", t)
+		}
+		if t, ok := raw["updated_at"]; ok {
+			raw["updated_at"] = fmt.Sprintf("%v", t)
+		}
+
+		fixed, _ := json.Marshal(raw)
+		var todo models.Todo
+		json.Unmarshal(fixed, &todo)
+		todos = append(todos, todo)
+	}
+	return todos, nil
 }

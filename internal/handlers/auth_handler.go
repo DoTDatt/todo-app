@@ -24,7 +24,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
 	}
 	err := h.serv.Register(input.Email, input.Password)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 	c.JSON(http.StatusCreated, gin.H{"message": "Đăng ký thành công"})

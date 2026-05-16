@@ -1,0 +1,49 @@
+services:
+  db:
+    image: mysql:8.0
+    container_name: mysql_db
+    restart: always
+    environment:
+      MYSQL_DATABASE: todo_db
+      MYSQL_ROOT_PASSWORD: root  
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  meilisearch:
+    image: getmeili/meilisearch:latest
+    container_name: meilisearch
+    restart: always
+    environment:
+      MEILI_MASTER_KEY: your-master-key-123
+      MEILI_ENV: production
+    ports:
+      - "7700:7700"
+    volumes:
+      - meili_data:/meili_data
+
+  app:
+    build: .
+    container_name: go_app
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+      APP_ENV: dev
+      DB_USER: root
+      DB_PASSWORD: root
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_NAME: todo_db
+      MEILI_HOST: http://meilisearch:7700
+      MEILI_API_KEY: your-master-key-123
+      JWT_SECRET: DATDOSECREKEY987654321
+      ALLOWED_ORIGINS: http://127.0.0.1:5500
+    depends_on:
+      - db
+      - meilisearch
+
+volumes:
+  mysql_data:
+  meili_data:

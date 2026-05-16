@@ -46,5 +46,8 @@ func (r *TodoRepository) Update(tx *gorm.DB, todo *models.Todo) error {
 
 func (r *TodoRepository) Delete(id int) error {
 	var todo models.Todo
-	return r.db.Delete(&todo, id).Error
+	if err := r.db.First(&todo, id).Error; err != nil {
+		return err
+	}
+	return r.db.Delete(&todo).Error
 }

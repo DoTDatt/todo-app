@@ -39,7 +39,7 @@ func ConnectDB() {
 		logLevel = logger.Info
 		zerolog.SetGlobalLevel(zerolog.InfoLevel)
 		fmt.Println("Running in DEV mode")
-	case "prod":
+	case "production":
 		logLevel = logger.Error
 		zerolog.SetGlobalLevel(zerolog.ErrorLevel)
 	default:
@@ -51,9 +51,9 @@ func ConnectDB() {
 	DB, err = gorm.Open(mysql.Open(dsn), &gorm.Config{
 		Logger: logger.Default.LogMode(logLevel),
 	})
+
 	if err != nil {
 		log.Fatal("Failed to connect to database:", err)
 	}
-
 	fmt.Println(" Database connected successfully!")
 }

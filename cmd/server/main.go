@@ -1,11 +1,14 @@
 package main
 
 import (
+	"os"
+
 	"github.com/DoDtatt/todo-app/internal/config"
 	"github.com/DoDtatt/todo-app/internal/handlers"
 	"github.com/DoDtatt/todo-app/internal/middleware"
 	"github.com/DoDtatt/todo-app/internal/models"
 	"github.com/DoDtatt/todo-app/internal/repositories"
+	"github.com/DoDtatt/todo-app/internal/search"
 	"github.com/DoDtatt/todo-app/internal/services"
 	"github.com/gin-gonic/gin"
 )
@@ -13,10 +16,17 @@ import (
 func main() {
 
 	config.ConnectDB()
-	config.DB.AutoMigrate(&models.Todo{})
+	config.DB.AutoMigrate(
+		&models.Role{},
+		&models.User{},
+		&models.Todo{})
 
+	meili := search.NewMeili(
+		os.Getenv("MEILI_HOST"),
+		os.Getenv("MEILI_API_KEY"),
+	)
 	todorepo := repositories.NewTodoRepository(config.DB)
-	todoserv := services.NewtodoService(todorepo)
+	todoserv := services.NewtodoService(todorepo, meili)
 	todoHandler := handlers.NewTodoHandler(todoserv)
 
 	authRepo := repositories.NewAuthRepository(config.DB)
@@ -36,6 +46,7 @@ func main() {
 
 	protected.GET("/todos", middleware.AuthMiddleware(), todoHandler.GetAllTodos)
 	protected.POST("/todos", middleware.AuthMiddleware(), todoHandler.CreateTodo)
+	protected.GET("/todos/search", middleware.AuthMiddleware(), todoHandler.SearchMeili)
 	protected.GET("/todos/:id", middleware.AuthMiddleware(), todoHandler.GetTodoByID)
 	protected.PUT("/todos/:id", middleware.AuthMiddleware(), todoHandler.UpdateTodo)
 	protected.DELETE("/todos/:id", middleware.AuthMiddleware(), todoHandler.DeleteTodo)

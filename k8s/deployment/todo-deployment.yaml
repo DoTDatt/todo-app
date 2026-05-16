@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: todo-app
+
+spec:
+  replicas: 1
+
+  selector:
+    matchLabels:
+      app: todo-app
+
+  template:
+    metadata:
+      labels:
+        app: todo-app
+
+    spec:
+      containers:
+        - name: todo-app
+
+          image: todo-app
+
+          imagePullPolicy: Never
+
+          ports:
+            - containerPort: 8080
+
+          env:
+            - name: APP_ENV
+              value: production
+
+            - name: DB_HOST
+              value: mysql
+
+            - name: DB_PORT
+              value: "3306"
+
+            - name: DB_USER
+              value: root
+
+            - name: DB_PASSWORD
+              value: root
+
+            - name: DB_NAME
+              value: todo_db
+            
+            - name: MEILI_HOST
+              value: http://meilisearch:7700  
+
+            - name: MEILI_API_KEY
+              value: your-master-key-123
+              
+            - name: ALLOWED_ORIGINS
+              value: "http://127.0.0.1:5500"
+
+            - name: JWT_SECRET
+              value: "DATDOSECREKEY987654321"
+
+            

@@ -21,14 +21,14 @@ func (h *TodoHandler) CreateTodo(c *gin.Context) {
 	var todo models.Todo
 
 	if err := c.ShouldBindJSON(&todo); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Dữ liệu gửi lên không hợp lệ"})
 		return
 	}
 	uid, _ := c.Get("user_id")
 
 	todo.UserID = uid.(int)
 	if err := h.serv.CreateTodo(&todo); err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Không thể tạo công việc mới"})
 		return
 	}
 
@@ -59,7 +59,7 @@ func (h *TodoHandler) GetAllTodos(c *gin.Context) {
 		Order:  c.Query("order"),
 	})
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "không thể tải danh sách"})
 		return
 	}
 
@@ -80,12 +80,12 @@ func (h *TodoHandler) UpdateTodo(c *gin.Context) {
 	}
 	var todo models.Todo
 	if err := c.ShouldBindJSON(&todo); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "thông tin cập nhật không hợp lệ"})
 		return
 	}
 	todo.ID = id
 	if err := h.serv.Update(&todo); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Không thể cập nhật dữ li"})
 		return
 	}
 
@@ -102,8 +102,22 @@ func (h *TodoHandler) DeleteTodo(c *gin.Context) {
 		return
 	}
 	if err := h.serv.Delete(id); err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		c.JSON(http.StatusNotFound, gin.H{"error": "todo không tồn tại hoặc đã bị xóa trước đó"})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "Todo đã được xóa"})
+}
+
+func (h *TodoHandler) SearchMeili(c *gin.Context) {
+	query := c.Query("q")
+	if query == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "query khong duoc trong"})
+		return
+	}
+	todos, err := h.serv.SearchMeili(query)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Lỗi khi tìm kiếm"})
+		return
+	}
+	c.JSON(http.StatusOK, todos)
 }
