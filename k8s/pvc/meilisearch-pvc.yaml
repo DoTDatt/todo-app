@@ -3,7 +3,7 @@ kind: PersistentVolumeClaim
 
 metadata:
   name: meili-pvc
-
+  namespace: todo-app
 spec:
   accessModes:
   - ReadWriteOnce

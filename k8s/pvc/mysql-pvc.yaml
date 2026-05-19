@@ -3,7 +3,7 @@ kind: PersistentVolumeClaim
 
 metadata:
   name: mysql-pvc
-
+  namespace: todo-app
 spec: 
   accessModes:
   - ReadWriteOnce

@@ -3,7 +3,7 @@ kind: Deployment
 
 metadata:
   name: todo-app
-
+  namespace: todo-app
 spec:
   replicas: 1
 

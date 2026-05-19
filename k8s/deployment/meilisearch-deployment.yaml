@@ -3,6 +3,7 @@ kind: Deployment
 
 metadata:
   name: meilisearch
+  namespace: todo-app
 
 spec:
   replicas: 1

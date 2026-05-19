@@ -3,7 +3,7 @@ kind: Deployment
 
 metadata:
   name: mysql
-
+  namespace: todo-app
 spec:
   replicas: 1
 
